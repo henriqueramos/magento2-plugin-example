@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="RamosHenrique_AdminTMDB::customMenu" title="The Movie Database" module="RamosHenrique_AdminTMDB" sortOrder="500" parent="Magento_Catalog::catalog" resource="RamosHenrique_AdminTMDB::customMenu"/>
+        <add id="RamosHenrique_AdminTMDB::searchMovies" title="Search Movies" module="RamosHenrique_AdminTMDB" sortOrder="200" parent="RamosHenrique_AdminTMDB::customMenu" action="tmdb/searchMovies/index" resource="RamosHenrique_AdminTMDB::searchMovies"/>
+    </menu>
+</config>

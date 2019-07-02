@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <title>
+            Searching Movies
+        </title>
+        <script src="RamosHenrique_AdminTMDB::js/tmdb.js"/>
+        <css src="//cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" src_type="url" />
+    </head>
+    <update handle="styles"/>
+    <body>
+        <referenceContainer name="content">
+            <block class="Magento\Backend\Block\Template" name="SearchMovies" template="RamosHenrique_AdminTMDB::search.phtml" />
+        </referenceContainer>
+    </body>
+</page>

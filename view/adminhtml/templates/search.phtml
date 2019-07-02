@@ -1,0 +1,228 @@
+<script id="movie-template" type="text/x-magento-template">
+    <article class="card card-product">
+        <div class="card-body">
+            <div class="row">
+                <aside class="col-sm-3">
+                    <div class="img-wrap">
+                        <a href="https://image.tmdb.org/t/p/original/<%- data.poster_path %>" target="_blank" title="View in high resolution">
+                            <img src="https://image.tmdb.org/t/p/w200/<%- data.poster_path %>" />
+                        </a>
+                    </div>
+                </aside>
+                <article class="col-sm-6">
+                    <h4 class="title"><%- data.title %></h4>
+                    <p><%- data.overview %></p>
+                    <h5>Release date: <%- data.release_date %></h5>
+                    <% if (data.adult) { %>
+                    <span class="badge badge-secondary">Adult movie</span>
+                    <% } %>
+                </article>
+                <aside class="col-sm-3 border-left">
+                    <div class="action-wrap">
+                        <p>
+                            <a href="#" class="btn btn-primary" data-movie_id="<%- data.id %>">Convert into product</a>
+                        </p>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </article>
+</script>
+
+<script>
+require(
+    [
+        "jquery",
+        "mage/template",
+        "paginationJS"
+    ], function ($, template) {
+        window.tmdbKey = '<?php echo $this->getCfgSample(); ?>';
+
+        jQuery.extend({
+            retrieveFormData: function () {
+                return {
+                    query: jQuery('#movieQuery').val(),
+                    language: jQuery('#language').val(),
+                    include_adult: jQuery("#include_adults").checkedBoolean(),
+                };
+            },
+            retrieveTMDbData: function (params) {
+                if (typeof params === 'undefined') {
+                    params = {};
+                }
+
+                params.api_key = window.tmdbKey;
+
+                params = jQuery.extend({
+                    page: 1,
+                    include_adult: false,
+                    language: "en-US",
+                    query: ""
+                }, params); 
+
+                var movieTemplate = template('#movie-template');
+                var movieLists = jQuery('#moviesList');
+
+                jQuery.ajax({
+                    url: "//api.themoviedb.org/3/search/movie",
+                    data: params,
+                    dataType: "json",
+                    method: "GET",
+                    success: function (data, status, xhr) {
+                        console.log(data);
+
+                        movieLists.empty();
+
+                        if (data.results.length === 0) {
+                            jQuery.cleanMovieStage();
+                            return true;
+                        }
+
+                        jQuery.each(data.results, function() {
+                            var movie = movieTemplate({
+                                data: {
+                                    poster_path: this['poster_path'],
+                                    id: this['id'],
+                                    title: this['title'],
+                                    release_date: this['release_date'],
+                                    overview: this['overview'],
+                                    adult: this['adult']
+                                }
+                            });
+                            movieLists.append(movie);
+                        });
+                        params = {
+                            total_pages: data.total_pages,
+                            page: data.page
+                        }
+                        jQuery.pagingMovies(params);
+                    },
+                    error: function (xhr, status, error) {
+                        jQuery.cleanMovieStage();
+                    }
+                });
+            },
+            pagingMovies: function (params) {
+                params = jQuery.extend({
+                    page: 1,
+                    total_pages: 1
+                }, params); 
+
+                if (params.total_pages < 1) {
+                    return false;
+                }
+
+                jQuery("#moviesPagination").paging(
+                    params.total_pages,
+                    {
+                        format: '[< ncnnn! >]',
+                        perpage: 20,
+                        lapping: 0,
+                        page: params.page,
+                        onClick: function(evt) {
+                            evt.preventDefault();
+                            var currentPage = $(this).data('page');
+                            var params = jQuery.retrieveFormData();
+                            params.page = currentPage;
+                            jQuery.retrieveTMDbData(params);
+                        },
+                        onFormat: function(type) {
+                            var currentPage = this.value;
+
+                            var options = {
+                                'block': function () {
+                                    if (this.page === currentPage) {
+                                        return '<li class="page-item active"><span class="page-link">' + currentPage + '</span></li>';
+                                    }
+
+                                    return '<li class="page-item"><a class="page-link" href="#">' + currentPage + '</a></li>';
+                                },
+                                'next': function () {
+                                    return '<li class="page-item"><a class="page-link" href="#">&gt;</a></li>';
+                                },
+                                'prev': function () {
+                                    return '<li class="page-item"><a class="page-link" href="#">&lt;</a></li>';
+                                },
+                                'first': function () {
+                                    return '<li class="page-item"><a class="page-link" href="#">First</a></li>';
+                                },
+                                'last': function () {
+                                    return '<li class="page-item"><a class="page-link" href="#">Last</a></li>';
+                                }
+                            }
+
+                            if (!options.hasOwnProperty(type)) {
+                                return '<li class="page-item active"><span class="page-link">' + currentPage + '</span></li>';
+                            }
+
+                            return options[type]();
+                        }
+                    }
+                );
+            },
+            cleanMovieStage: function () {
+                jQuery('#moviesList').empty().html("<h4>Not found anything!</h4>");
+                jQuery('#moviesPagination').empty();
+            }
+        });
+
+        jQuery.fn.extend({
+            checkedBoolean: function () {
+                return jQuery(this).prop('checked') ? 'true' : 'false';
+            }
+        });
+
+        jQuery(document).on('click', '#searchMovies', function (evt) {
+            evt.preventDefault();
+
+            var params = jQuery.retrieveFormData();
+
+            jQuery.retrieveTMDbData(params);
+            return false;
+        });
+    });
+</script>
+
+<div class="row">
+    <aside class="col-sm-3">
+    <div class="card card-filter">
+        <article class="card-group-item">
+            <header class="card-header">
+                <h5 class="title">Search Movies</h5>
+            </header>
+            <div class="filter-content">
+                <div class="card-body">
+                    <div class="form-group">
+                        <input class="form-control" placeholder="Movie" type="text" id="movieQuery" name="movieQuery" required="true" minlength="3">
+                    </div>
+                    <div class="form-group">
+                        <label for="language">Language</label>
+                        <select class="custom-select" id="language" name="language" required="true">
+                            <option disabled>Select one language</option>
+                            <option value="pt-BR">Portuguese (Brazil)</option>
+                            <option value="en-US">English (United States)</option>
+                            <option value="es-es">Spanish (Espa&ntilde;a)</option>
+                        </select>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" value="" type="checkbox" id="include_adults" name="include_adults">
+                        <span class="form-check-label">
+                            Include Adults
+                        </span>
+                    </div>
+                        <br />
+                    <div class="form-group">
+                        <button id="searchMovies" class="btn btn-block btn-outline-primary">Search</button>
+                    </div>
+                </div>
+            </div>
+        </article>
+    </div>
+    </aside>
+
+    <main id="moviesContent" class="col-sm-9">
+        <div id="moviesList"></div>
+            <br />
+        <div id="moviesPagination" class="pagination"></div>
+    </main>
+</div>

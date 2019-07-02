@@ -1,0 +1,25 @@
+{
+  "name": "ramoshenrique/magento-two-tmdb-module",
+  "description": "Magento Two TMDb Module help us to retrieve movie data from the themoviedb.org, allowing users to add them as products at the administration section",
+  "type": "magento2-module",
+  "version": "1.0.0",
+  "license": "MIT",
+  "authors": [
+      {
+        "name": "Henrique Ramos",
+        "email": "henrique@habilissimo.com.br"
+      }
+  ],
+  "require": {
+      "php": ">=7.1",
+      "magento/magento-composer-installer": "*"
+  },
+  "autoload": {
+      "files": [
+          "registration.php"
+      ],
+      "psr-4": {
+          "RamosHenrique\\AdminTMDB\\": ""
+      }
+  }
+}
