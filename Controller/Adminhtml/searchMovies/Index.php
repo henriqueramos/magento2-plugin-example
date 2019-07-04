@@ -11,20 +11,28 @@ use Magento\Framework\View\Result\{
     Page
 };
 
-use RamosHenrique\AdminTMDB\Traits\ConfigTrait;
+use RamosHenrique\AdminTMDB\Helpers\TMDBHelper;
 
 class Index extends Action
 {
-    use ConfigTrait;
+    /**
+     * @var Context
+     */
+    protected $context;
+
+    /**
+     * @var TMDBHelper
+     */
+    protected $tmdbHelper;
 
     /**
      * @var PageFactory
      */
-     protected $resultPageFactory;
+    protected $resultPageFactory;
 
-    /**
-     * @var scopeConfig
-     */
+     /**
+      * @var scopeConfig
+      */
     protected $scopeConfig;
 
     /**
@@ -36,9 +44,11 @@ class Index extends Action
         PageFactory $pageFactory,
         ScopeConfigInterface $scopeConfig
     ) {
-        parent::__construct($context);
+        $this->tmdbHelper = new TMDBHelper();
         $this->resultPageFactory = $pageFactory;
         $this->scopeConfig = $scopeConfig;
+        $this->context = $context;
+        parent::__construct($context);
     }
 
     /**
@@ -48,10 +58,14 @@ class Index extends Action
     */
     public function execute(): Page
     {
+        $adminToken = $this->tmdbHelper->getAdminToken(
+            $this->context->getAuth()->getUser()->getId()
+        );
+
         $page = $this->resultPageFactory->create();
         $page->setActiveMenu('RamosHenrique_AdminTMDB::searchMovies');
 
-        $cfg_text = $this->getConfig('general/tmdb_api_key');
+        $cfg_text = $this->tmdbHelper->getConfig('general/tmdb_api_key');
         $page->getLayout()->getBlock('SearchMovies')
                     ->setCfgSample($cfg_text);
 
